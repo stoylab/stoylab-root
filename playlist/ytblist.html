@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>İzleme Listeleri</title>
+<style>
+  /* ============================================================
+     DÜZENLEME BURADA DEĞİL — video listesini sayfanın en altındaki
+     <script> içindeki VERI değişkeninde düzenle.
+     ============================================================ */
+  :root{
+    --paper:#fbf7ef;
+    --ink:#2a2320;
+    --ink-soft:#6b615a;
+    --line:#e6ddcf;
+    --card:#ffffff;
+    --pop-1:#ff6b4a;
+    --pop-2:#3aa0ff;
+    --pop-3:#ffb020;
+    --pop-4:#3ec98a;
+    --pop-5:#a874ff;
+    --radius:20px;
+    --shadow:0 8px 24px rgba(42,35,32,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--paper);color:var(--ink);
+    font-family:"Segoe UI Rounded","SF Pro Rounded",ui-rounded,"Nunito",system-ui,sans-serif}
+  body{min-height:100dvh;padding:max(20px,env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom))}
+  .wrap{max-width:720px;margin:0 auto}
+
+  header{padding:14px 4px 26px;text-align:center}
+  header h1{font-size:clamp(28px,7vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+  header p{margin-top:8px;color:var(--ink-soft);font-size:15px;font-weight:600}
+
+  .grid{display:grid;gap:16px}
+
+  .cat{
+    display:flex;align-items:center;gap:16px;width:100%;
+    background:var(--card);border:none;border-radius:var(--radius);
+    padding:20px 20px;box-shadow:var(--shadow);cursor:pointer;
+    text-align:left;color:inherit;font-family:inherit;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .cat:active{transform:scale(.97)}
+  .cat:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  @media(hover:hover){.cat:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(42,35,32,.13)}}
+
+  .emoji{
+    flex:0 0 auto;width:64px;height:64px;border-radius:16px;
+    display:grid;place-items:center;font-size:34px;
+  }
+  .cat-body{flex:1 1 auto;min-width:0}
+  .cat-name{font-size:21px;font-weight:800;letter-spacing:-.01em}
+  .cat-meta{margin-top:2px;color:var(--ink-soft);font-size:14px;font-weight:600}
+  .play{
+    flex:0 0 auto;width:44px;height:44px;border-radius:50%;
+    display:grid;place-items:center;
+    background:var(--ink);color:var(--paper);font-size:18px;
+  }
+
+  .empty{
+    background:var(--card);border-radius:var(--radius);padding:26px 22px;
+    box-shadow:var(--shadow);color:var(--ink-soft);font-weight:600;line-height:1.6;font-size:15px
+  }
+  .empty code{background:var(--paper);padding:2px 7px;border-radius:6px;font-size:13px;color:var(--ink)}
+
+  footer{margin-top:30px;text-align:center;color:var(--ink-soft);font-size:13px;font-weight:600;line-height:1.7}
+  footer a{color:var(--pop-2);text-decoration:none;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>İzleme Listeleri</h1>
+    <p>Bir kutuya dokun, videolar sırayla başlasın</p>
+  </header>
+  <div class="grid" id="grid"></div>
+  <footer>
+    Videolar YouTube'da sırayla açılır.<br>
+    Listeyi düzenlemek için dosyadaki <strong>VERI</strong> bölümünü değiştir.
+  </footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DÜZENLEME ALANI — sadece burayı değiştir.
+
+   Her kategori için:
+     ad     : ekranda görünen isim
+     emoji  : ikon
+     renk   : ikon arka plan rengi (--pop-1..5 ya da serbest hex)
+     videolar: video ID listesi (sadece ID! sıra = oynatma sırası)
+
+   Video ID nedir?
+     https://www.youtube.com/watch?v=ABC123xyz  →  ID = ABC123xyz
+     https://youtu.be/ABC123xyz                 →  ID = ABC123xyz
+   Sadece ID'yi tırnak içinde yaz, tam link değil.
+   ═══════════════════════════════════════════════════════════════ */
+
+const VERI = [
+  {
+    ad: "Şarkılar",
+    emoji: "🎵",
+    renk: "var(--pop-1)",
+    videolar: [
+      // "dQw4w9WgXcQ",
+      // "abc123def45",
+    ],
+  },
+  {
+    ad: "Çizgi Filmler",
+    emoji: "📺",
+    renk: "var(--pop-2)",
+    videolar: [
+      // "video_id_buraya",
+    ],
+  },
+  {
+    ad: "Eğitici",
+    emoji: "🧠",
+    renk: "var(--pop-4)",
+    videolar: [
+    ],
+  },
+  {
+    ad: "Masallar",
+    emoji: "🦄",
+    renk: "var(--pop-5)",
+    videolar: [
+    ],
+  },
+];
+
+/* ═══════════ Buradan aşağısını değiştirmene gerek yok ═══════════ */
+
+function link(ids){
+  const temiz = ids.map(s => s.trim()).filter(Boolean);
+  return "https://www.youtube.com/watch_videos?video_ids=" + temiz.join(",");
+}
+
+function render(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  VERI.forEach(kat => {
+    const adet = kat.videolar.map(s=>s.trim()).filter(Boolean).length;
+
+    if(adet === 0){
+      const el = document.createElement("div");
+      el.className = "cat";
+      el.style.cursor = "default";
+      el.innerHTML = `
+        <div class="emoji" style="background:${kat.renk};opacity:.35">${kat.emoji}</div>
+        <div class="cat-body">
+          <div class="cat-name" style="opacity:.5">${kat.ad}</div>
+          <div class="cat-meta">Henüz video yok</div>
+        </div>`;
+      grid.appendChild(el);
+      return;
+    }
+
+    const btn = document.createElement("button");
+    btn.className = "cat";
+    btn.innerHTML = `
+      <div class="emoji" style="background:${kat.renk}">${kat.emoji}</div>
+      <div class="cat-body">
+        <div class="cat-name">${kat.ad}</div>
+        <div class="cat-meta">${adet} video · sırayla</div>
+      </div>
+      <div class="play">▶</div>`;
+    btn.addEventListener("click", () => {
+      window.open(link(kat.videolar), "_blank", "noopener");
+    });
+    grid.appendChild(btn);
+  });
+
+  if(VERI.every(k => k.videolar.map(s=>s.trim()).filter(Boolean).length === 0)){
+    grid.innerHTML = `<div class="empty">
+      Henüz hiç video eklenmemiş.<br><br>
+      Bu dosyayı bir metin düzenleyicide aç, <code>VERI</code> bölümünde
+      video ID'lerini tırnak içinde ekle. Örnek:<br><br>
+      videolar: [ <code>"dQw4w9WgXcQ"</code>, <code>"abc123def45"</code> ]
+    </div>`;
+  }
+}
+render();
+</script>
+</body>
+</html>
