@@ -3,187 +3,197 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>İzleme Listeleri</title>
+<title>İzleme Listesi</title>
 <style>
-  /* ============================================================
-     DÜZENLEME BURADA DEĞİL — video listesini sayfanın en altındaki
-     <script> içindeki VERI değişkeninde düzenle.
-     ============================================================ */
   :root{
     --paper:#fbf7ef;
     --ink:#2a2320;
     --ink-soft:#6b615a;
     --line:#e6ddcf;
     --card:#ffffff;
-    --pop-1:#ff6b4a;
+    --pop:#ff6b4a;
     --pop-2:#3aa0ff;
-    --pop-3:#ffb020;
-    --pop-4:#3ec98a;
-    --pop-5:#a874ff;
-    --radius:20px;
+    --radius:18px;
     --shadow:0 8px 24px rgba(42,35,32,.08);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{background:var(--paper);color:var(--ink);
     font-family:"Segoe UI Rounded","SF Pro Rounded",ui-rounded,"Nunito",system-ui,sans-serif}
-  body{min-height:100dvh;padding:max(20px,env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom))}
-  .wrap{max-width:720px;margin:0 auto}
+  body{min-height:100dvh;padding:max(18px,env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}
+  .wrap{max-width:840px;margin:0 auto}
 
-  header{padding:14px 4px 26px;text-align:center}
-  header h1{font-size:clamp(28px,7vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.05}
-  header p{margin-top:8px;color:var(--ink-soft);font-size:15px;font-weight:600}
+  header{padding:8px 4px 18px;text-align:center}
+  header h1{font-size:clamp(24px,6vw,34px);font-weight:800;letter-spacing:-.02em}
 
-  .grid{display:grid;gap:16px}
-
-  .cat{
-    display:flex;align-items:center;gap:16px;width:100%;
-    background:var(--card);border:none;border-radius:var(--radius);
-    padding:20px 20px;box-shadow:var(--shadow);cursor:pointer;
-    text-align:left;color:inherit;font-family:inherit;
-    transition:transform .12s ease, box-shadow .12s ease;
+  .player-box{
+    position:relative;width:100%;aspect-ratio:16/9;
+    background:#000;border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow);
   }
-  .cat:active{transform:scale(.97)}
-  .cat:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
-  @media(hover:hover){.cat:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(42,35,32,.13)}}
-
-  .emoji{
-    flex:0 0 auto;width:64px;height:64px;border-radius:16px;
-    display:grid;place-items:center;font-size:34px;
-  }
-  .cat-body{flex:1 1 auto;min-width:0}
-  .cat-name{font-size:21px;font-weight:800;letter-spacing:-.01em}
-  .cat-meta{margin-top:2px;color:var(--ink-soft);font-size:14px;font-weight:600}
-  .play{
-    flex:0 0 auto;width:44px;height:44px;border-radius:50%;
-    display:grid;place-items:center;
-    background:var(--ink);color:var(--paper);font-size:18px;
+  .player-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .player-placeholder{
+    position:absolute;inset:0;display:grid;place-items:center;text-align:center;
+    color:#d9cfc2;padding:24px;font-weight:600;font-size:15px;line-height:1.6
   }
 
-  .empty{
-    background:var(--card);border-radius:var(--radius);padding:26px 22px;
-    box-shadow:var(--shadow);color:var(--ink-soft);font-weight:600;line-height:1.6;font-size:15px
+  .nowbar{
+    display:flex;align-items:center;gap:12px;margin-top:12px;
+    background:var(--card);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);
+    min-height:56px
   }
-  .empty code{background:var(--paper);padding:2px 7px;border-radius:6px;font-size:13px;color:var(--ink)}
+  .nowbar .count{font-weight:800;font-size:15px;white-space:nowrap}
+  .nowbar .title{color:var(--ink-soft);font-weight:600;font-size:14px;flex:1;min-width:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .navbtn{
+    flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
+    background:var(--paper);color:var(--ink);font-size:16px;font-weight:800;
+    display:grid;place-items:center;font-family:inherit
+  }
+  .navbtn:active{transform:scale(.92)}
+  .navbtn:disabled{opacity:.3;cursor:default}
 
-  footer{margin-top:30px;text-align:center;color:var(--ink-soft);font-size:13px;font-weight:600;line-height:1.7}
-  footer a{color:var(--pop-2);text-decoration:none;font-weight:700}
+  .panel{margin-top:22px;background:var(--card);border-radius:var(--radius);
+    padding:18px;box-shadow:var(--shadow)}
+  .panel label{display:block;font-weight:800;font-size:15px;margin-bottom:4px}
+  .panel .hint{color:var(--ink-soft);font-size:13px;font-weight:600;margin-bottom:12px;line-height:1.5}
+  .panel .hint code{background:var(--paper);padding:1px 6px;border-radius:5px;color:var(--ink)}
+  textarea{
+    width:100%;min-height:150px;resize:vertical;
+    border:2px solid var(--line);border-radius:12px;padding:12px 14px;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:15px;
+    color:var(--ink);background:var(--paper);line-height:1.7
+  }
+  textarea:focus{outline:none;border-color:var(--pop-2)}
+
+  .actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn{
+    flex:1 1 auto;border:none;border-radius:12px;padding:15px 18px;cursor:pointer;
+    font-family:inherit;font-weight:800;font-size:16px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:transform .1s ease
+  }
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:var(--pop);color:#fff;flex:2 1 200px}
+  .btn-ghost{background:var(--paper);color:var(--ink);border:2px solid var(--line);flex:0 1 auto}
+
+  .msg{margin-top:10px;font-size:13px;font-weight:700;color:var(--pop);min-height:18px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>İzleme Listeleri</h1>
-    <p>Bir kutuya dokun, videolar sırayla başlasın</p>
-  </header>
-  <div class="grid" id="grid"></div>
-  <footer>
-    Videolar YouTube'da sırayla açılır.<br>
-    Listeyi düzenlemek için dosyadaki <strong>VERI</strong> bölümünü değiştir.
-  </footer>
+  <header><h1>İzleme Listesi</h1></header>
+
+  <div class="player-box">
+    <div class="player-placeholder" id="ph">
+      Video ID'lerini aşağıya yapıştır, sonra <strong>Oynat</strong>'a bas.<br>
+      Videolar burada sırayla oynar.
+    </div>
+    <div id="player"></div>
+  </div>
+
+  <div class="nowbar">
+    <button class="navbtn" id="prev" title="Önceki" disabled>◀</button>
+    <span class="count" id="count">—</span>
+    <span class="title" id="title">Liste boş</span>
+    <button class="navbtn" id="next" title="Sonraki" disabled>▶</button>
+  </div>
+
+  <div class="panel">
+    <label for="ids">Video ID'leri</label>
+    <div class="hint">
+      Her satıra bir tane. Tam link de yapıştırabilirsin, otomatik ID'ye çevrilir.<br>
+      Örn: <code>KT6oCw535NI</code> ya da <code>https://youtu.be/KT6oCw535NI</code>
+    </div>
+    <textarea id="ids" placeholder="KT6oCw535NI&#10;https://youtu.be/abc123&#10;https://www.youtube.com/watch?v=xyz789" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+    <div class="actions">
+      <button class="btn btn-primary" id="play">▶ Oynat</button>
+      <button class="btn btn-ghost" id="shuffle">🔀 Karışık</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </div>
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   DÜZENLEME ALANI — sadece burayı değiştir.
-
-   Her kategori için:
-     ad     : ekranda görünen isim
-     emoji  : ikon
-     renk   : ikon arka plan rengi (--pop-1..5 ya da serbest hex)
-     videolar: video ID listesi (sadece ID! sıra = oynatma sırası)
-
-   Video ID nedir?
-     https://www.youtube.com/watch?v=ABC123xyz  →  ID = ABC123xyz
-     https://youtu.be/ABC123xyz                 →  ID = ABC123xyz
-   Sadece ID'yi tırnak içinde yaz, tam link değil.
-   ═══════════════════════════════════════════════════════════════ */
-
-const VERI = [
-  {
-    ad: "Şarkılar",
-    emoji: "🎵",
-    renk: "var(--pop-1)",
-    videolar: [
-      // "dQw4w9WgXcQ",
-      // "abc123def45",
-    ],
-  },
-  {
-    ad: "Çizgi Filmler",
-    emoji: "📺",
-    renk: "var(--pop-2)",
-    videolar: [
-      // "video_id_buraya",
-    ],
-  },
-  {
-    ad: "Eğitici",
-    emoji: "🧠",
-    renk: "var(--pop-4)",
-    videolar: [
-    ],
-  },
-  {
-    ad: "Masallar",
-    emoji: "🦄",
-    renk: "var(--pop-5)",
-    videolar: [
-    ],
-  },
-];
-
-/* ═══════════ Buradan aşağısını değiştirmene gerek yok ═══════════ */
-
-function link(ids){
-  const temiz = ids.map(s => s.trim()).filter(Boolean);
-  return "https://www.youtube.com/watch_videos?video_ids=" + temiz.join(",");
+function parseId(line){
+  line = line.trim();
+  if(!line) return null;
+  let m = line.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/);
+  if(m) return m[1];
+  if(/^[A-Za-z0-9_-]{11}$/.test(line)) return line;
+  m = line.match(/([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
 }
-
-function render(){
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "";
-  VERI.forEach(kat => {
-    const adet = kat.videolar.map(s=>s.trim()).filter(Boolean).length;
-
-    if(adet === 0){
-      const el = document.createElement("div");
-      el.className = "cat";
-      el.style.cursor = "default";
-      el.innerHTML = `
-        <div class="emoji" style="background:${kat.renk};opacity:.35">${kat.emoji}</div>
-        <div class="cat-body">
-          <div class="cat-name" style="opacity:.5">${kat.ad}</div>
-          <div class="cat-meta">Henüz video yok</div>
-        </div>`;
-      grid.appendChild(el);
-      return;
-    }
-
-    const btn = document.createElement("button");
-    btn.className = "cat";
-    btn.innerHTML = `
-      <div class="emoji" style="background:${kat.renk}">${kat.emoji}</div>
-      <div class="cat-body">
-        <div class="cat-name">${kat.ad}</div>
-        <div class="cat-meta">${adet} video · sırayla</div>
-      </div>
-      <div class="play">▶</div>`;
-    btn.addEventListener("click", () => {
-      window.open(link(kat.videolar), "_blank", "noopener");
-    });
-    grid.appendChild(btn);
+function parseList(text){
+  const seen = new Set(), out = [];
+  text.split(/[\n,]/).forEach(l => {
+    const id = parseId(l);
+    if(id && !seen.has(id)){ seen.add(id); out.push(id); }
   });
-
-  if(VERI.every(k => k.videolar.map(s=>s.trim()).filter(Boolean).length === 0)){
-    grid.innerHTML = `<div class="empty">
-      Henüz hiç video eklenmemiş.<br><br>
-      Bu dosyayı bir metin düzenleyicide aç, <code>VERI</code> bölümünde
-      video ID'lerini tırnak içinde ekle. Örnek:<br><br>
-      videolar: [ <code>"dQw4w9WgXcQ"</code>, <code>"abc123def45"</code> ]
-    </div>`;
-  }
+  return out;
 }
-render();
+
+let player, ready = false, queue = [], idx = 0;
+
+window.onYouTubeIframeAPIReady = function(){
+  player = new YT.Player('player', {
+    height:'100%', width:'100%',
+    playerVars:{ rel:0, playsinline:1, modestbranding:1 },
+    events:{
+      onReady: () => { ready = true; },
+      onStateChange: e => { if(e.data === YT.PlayerState.ENDED) playNext(); }
+    }
+  });
+};
+(function(){
+  const s = document.createElement('script');
+  s.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(s);
+})();
+
+const ph = document.getElementById('ph');
+const countEl = document.getElementById('count');
+const titleEl = document.getElementById('title');
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
+const msg = document.getElementById('msg');
+
+function updateBar(){
+  if(!queue.length){
+    countEl.textContent = "—";
+    titleEl.textContent = "Liste boş";
+    prevBtn.disabled = nextBtn.disabled = true;
+    return;
+  }
+  countEl.textContent = (idx+1) + " / " + queue.length;
+  titleEl.textContent = "Video " + queue[idx];
+  prevBtn.disabled = (idx === 0);
+  nextBtn.disabled = (idx === queue.length-1);
+}
+function loadCurrent(){
+  if(!ready){ msg.textContent = "Oynatıcı yükleniyor, bir saniye sonra tekrar dene."; return; }
+  ph.style.display = "none";
+  player.loadVideoById(queue[idx]);
+  updateBar();
+}
+function playNext(){ if(idx < queue.length-1){ idx++; loadCurrent(); } }
+function playPrev(){ if(idx > 0){ idx--; loadCurrent(); } }
+
+function start(list){
+  if(!list.length){ msg.textContent = "Geçerli video ID bulunamadı."; return; }
+  queue = list; idx = 0; msg.textContent = "";
+  loadCurrent();
+}
+
+document.getElementById('play').addEventListener('click', () => {
+  start(parseList(document.getElementById('ids').value));
+});
+document.getElementById('shuffle').addEventListener('click', () => {
+  const l = parseList(document.getElementById('ids').value);
+  for(let i=l.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [l[i],l[j]]=[l[j],l[i]]; }
+  start(l);
+});
+prevBtn.addEventListener('click', playPrev);
+nextBtn.addEventListener('click', playNext);
 </script>
 </body>
 </html>
